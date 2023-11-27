@@ -1,25 +1,19 @@
 const db = require("../models/index");
+const {
+  addComment,
+  updateComment,
+  deleteComment,
+  getComments,
+} = require("../models/comments");
 
 exports.addComment = async (req, res) => {
   try {
     const { comment_content, comment_rate } = req.body;
-    const { course_id, user_id } = req.params;
+    const { course_id } = req.params;
+    const { user_id } = req.user.user_id;
 
-    // Fetch user details by joining with the 'users' table
-    const user = await db.users.findByPk(user_id, {
-      attributes: ["firstname", "lastname"], // Specify the columns you need
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // Concatenate firstname and lastname to create comment_author
-    const comment_author = `${user.firstname} ${user.lastname}`;
-
-    const newComment = await db.comments.create({
+    const newCommentId = await addComment({
       comment_content,
-      comment_author,
       comment_rate,
       course_id,
       user_id,
@@ -27,7 +21,7 @@ exports.addComment = async (req, res) => {
 
     res.status(201).json({
       message: "Comment added successfully",
-      comment_id: newComment.comment_id,
+      comment_id: newCommentId,
     });
   } catch (error) {
     console.error("Failed to add the comment: ", error);
@@ -40,22 +34,15 @@ exports.updateComment = async (req, res) => {
     const comment_id = req.params.comment_id;
     const { comment_content, comment_rate } = req.body;
 
-    const comment = await db.comments.findByPk(comment_id, {
-      where: { is_deleted: false }, // Ensure the comment is not soft-deleted
-    });
-
-    if (!comment) {
-      return res.status(404).json({ error: "Comment not found" });
-    }
-
-    const updatedComment = await comment.update({
+    const updatedCommentId = await updateComment({
+      comment_id,
       comment_content,
       comment_rate,
     });
 
     res.status(200).json({
       message: "Comment updated successfully",
-      comment_id: updatedComment.comment_id,
+      comment_id: updatedCommentId,
     });
   } catch (error) {
     console.error("Failed to update the comment: ", error);
@@ -67,18 +54,11 @@ exports.deleteComment = async (req, res) => {
   try {
     const comment_id = req.params.comment_id;
 
-    const comment = await db.comments.findByPk(comment_id);
-
-    if (!comment) {
-      return res.status(404).json({ error: "Comment not found" });
-    }
-
-    // Perform the soft delete by updating is_deleted to true
-    await comment.update({ is_deleted: true });
+    const deletedCommentId = await deleteComment(comment_id);
 
     res.status(200).json({
       message: "Comment soft-deleted successfully",
-      comment_id: comment.comment_id,
+      comment_id: deletedCommentId,
     });
   } catch (error) {
     console.error("Failed to delete the comment: ", error);
@@ -90,12 +70,7 @@ exports.getComments = async (req, res) => {
   try {
     const course_id = req.params.course_id;
 
-    const comments = await db.comments.findAll({
-      where: {
-        course_id,
-        is_deleted: false, // Ensure only non-soft-deleted comments are retrieved
-      },
-    });
+    const comments = await getComments(course_id);
 
     res.status(200).json({
       message: "Comments retrieved successfully",

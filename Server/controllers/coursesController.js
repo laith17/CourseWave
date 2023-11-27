@@ -1,6 +1,42 @@
 const db = require("../models/index");
+const {
+  addCourse,
+  updateCourse,
+  deleteCourse,
+  getCourses,
+  getCourse,
+  getCoursesByFilter,
+  getCoursesBySearch,
+  getTrainerCourses,
+} = require("../models/courses");
+const {
+  addCourseObject,
+  updateCourseObject,
+  deleteCourseObject,
+  getCourseObjectDetails,
+} = require("../models/course_objects");
+const {
+  addCourseRequirement,
+  updateCourseRequirement,
+  deleteCourseRequirement,
+  getCourseRequirementDetails,
+} = require("../models/course_requirements");
+const {
+  addCourseSection,
+  updateCourseSection,
+  deleteCourseSection,
+  getCourseSections,
+} = require("../models/course_sections");
+const {
+  addSectionVideo,
+  updateSectionVideo,
+  deleteSectionVideo,
+  getSectionVideoDetails,
+  getSectionVideos,
+} = require("../models/section_videos");
 const { uploadImage, uploadVideo } = require("../middlewares/multer");
 
+//* CRUD functions for courses
 exports.addCourse = async (req, res) => {
   try {
     uploadImage.single("course_image")(req, res, async function (err) {
@@ -19,70 +55,22 @@ exports.addCourse = async (req, res) => {
         course_price,
         course_rate,
         course_length,
-        object_1,
-        object_2,
-        object_3,
-        object_4,
-        object_5,
-        object_6,
-        object_7,
-        object_8,
-        requirement_1,
-        requirement_2,
-        requirement_3,
-        requirement_4,
-        requirement_5,
-        requirement_6,
-        requirement_7,
-        requirement_8,
+        course_catagory,
       } = req.body;
 
       const course_image = req.file.path; // Path to the uploaded image
-      const trainer_id = req.params.trainer_id;
-
-      // Check if the trainer exists
-      const trainer = await db.trainers.findByPk(trainer_id);
-      if (!trainer) {
-        return res.status(404).json({ error: "Trainer not found" });
-      }
+      const trainer_id = req.user.trainer_id;
 
       // Create a new course
-      const newCourse = await db.courses.create({
+      const newCourse = await addCourse({
         course_title,
         course_description,
         course_price,
-        course_rate,
+        course_rate: 0,
         course_length,
+        course_catagory,
         course_image,
         trainer_id,
-      });
-
-      // Create entries in course_objects
-      const courseObjects = await db.course_objects.create({
-        course_id: newCourse.course_id,
-        object_1,
-        object_2,
-        object_3,
-        object_4,
-        object_5,
-        object_6,
-        object_7,
-        object_8,
-        is_deleted: false,
-      });
-
-      // Create entries in course_requirements
-      const courseRequirements = await db.course_requirements.create({
-        course_id: newCourse.course_id,
-        requirement_1,
-        requirement_2,
-        requirement_3,
-        requirement_4,
-        requirement_5,
-        requirement_6,
-        requirement_7,
-        requirement_8,
-        is_deleted: false,
       });
 
       res.status(201).json({
@@ -96,19 +84,364 @@ exports.addCourse = async (req, res) => {
   }
 };
 
+exports.updateCourse = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+    const {
+      course_title,
+      course_description,
+      course_price,
+      course_length,
+      course_catagory,
+    } = req.body;
+
+    // Update course details and calculate average rating
+    const updatedCourse = await updateCourse({
+      course_id,
+      course_title,
+      course_description,
+      course_price,
+      course_length,
+      course_catagory,
+    });
+
+    res.status(200).json({
+      message: "Course updated successfully",
+      course_id: updatedCourse,
+    });
+  } catch (error) {
+    console.error("Failed to update the course: ", error);
+    return res.status(500).json({ error: "Failed to update the course" });
+  }
+};
+
+exports.deleteCourse = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+
+    // Soft delete course and associated data
+    await deleteCourse(course_id); // Updated function name
+
+    res.status(200).json({
+      message: "Course and associated data soft-deleted successfully",
+      course_id,
+    });
+  } catch (error) {
+    console.error("Failed to delete the course: ", error);
+    return res.status(500).json({ error: "Failed to delete the course" });
+  }
+};
+
+exports.getCourses = async (req, res) => {
+  try {
+    const { page = 1, pageSize = 2 } = req.query;
+
+    const coursesWithDetails = await getCourses(
+      parseInt(page),
+      parseInt(pageSize)
+    );
+
+    if (!coursesWithDetails || coursesWithDetails.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No courses found for the specified course_id" });
+    }
+
+    res.status(200).json({
+      message: "Courses and related data retrieved successfully",
+      courses: coursesWithDetails,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve courses and related data: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve courses and related data" });
+  }
+};
+
+exports.getCourse = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+
+    const courseWithDetails = await getCourse(course_id);
+
+    if (!courseWithDetails || courseWithDetails.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No courses found for the specified course_id" });
+    }
+
+    res.status(200).json({
+      message: "Courses and related data retrieved successfully",
+      course: courseWithDetails,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve courses and related data: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve courses and related data" });
+  }
+};
+
+exports.getCoursesByFilter = async (req, res) => {
+  try {
+    const { catagory, page = 1, pageSize = 2 } = req.query;
+
+    const coursesWithFilter = await getCoursesByFilter(
+      catagory,
+      parseInt(page),
+      parseInt(pageSize)
+    );
+
+    if (!coursesWithFilter || coursesWithFilter.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No courses found for the specified filter" });
+    }
+
+    res.status(200).json({
+      message: "Courses retrieved successfully",
+      coursesWithFilter,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve courses: ", error);
+    return res.status(500).json({ error: "Failed to retrieve courses" });
+  }
+};
+
+exports.getCoursesBySearch = async (req, res) => {
+  try {
+    const { searchTerm, page = 1, pageSize = 2 } = req.query;
+
+    const coursesForSearch = await getCoursesBySearch(
+      searchTerm,
+      parseInt(page),
+      parseInt(pageSize)
+    );
+
+    if (!coursesForSearch || coursesForSearch.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No courses found for the specified trainer_id" });
+    }
+
+    res.status(200).json({
+      message: "Courses retrieved successfully",
+      coursesForSearch,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve courses: ", error);
+    return res.status(500).json({ error: "Failed to retrieve courses" });
+  }
+};
+
+exports.getTrainerCourses = async (req, res) => {
+  try {
+    const trainer_id = req.user.trainer_id;
+    const { page = 1, pageSize = 10 } = req.query;
+
+    const coursesForTrainer = await getTrainerCourses(
+      parseInt(trainer_id),
+      parseInt(page),
+      parseInt(pageSize)
+    );
+
+    if (!coursesForTrainer || coursesForTrainer.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No courses found for the specified trainer_id" });
+    }
+
+    res.status(200).json({
+      message: "Trainer courses retrieved successfully",
+      coursesForTrainer,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve trainer courses: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve trainer courses" });
+  }
+};
+
+//* CRUD functions for course_objects
+exports.addCourseObject = async (req, res) => {
+  try {
+    const { object } = req.body;
+    const course_id = req.params.course_id;
+
+    // Add new course object
+    const newCourseObject = await addCourseObject({
+      object,
+      course_id,
+      is_deleted: false,
+    });
+
+    res.status(201).json({
+      message: "Course object added successfully",
+      object_id: newCourseObject.object_id,
+    });
+  } catch (error) {
+    console.error("Failed to add the course object: ", error);
+    return res.status(500).json({ error: "Failed to add the course object" });
+  }
+};
+
+exports.updateCourseObject = async (req, res) => {
+  try {
+    const { object } = req.body;
+    const object_id = req.params.object_id;
+
+    // Update course object details
+    await updateCourseObject({ object_id, object });
+
+    res.status(200).json({
+      message: "Course object updated successfully",
+    });
+  } catch (error) {
+    console.error("Failed to update the course object: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to update the course object" });
+  }
+};
+
+exports.deleteCourseObject = async (req, res) => {
+  try {
+    const object_id = req.params.object_id;
+
+    // Soft delete course object
+    await deleteCourseObject(object_id);
+
+    res.status(200).json({
+      message: "Course object soft-deleted successfully",
+    });
+  } catch (error) {
+    console.error("Failed to delete the course object: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to delete the course object" });
+  }
+};
+
+exports.getCourseObjectDetails = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+
+    // Get course object details
+    const courseObjectDetails = await getCourseObjectDetails(course_id);
+
+    if (!courseObjectDetails || courseObjectDetails.length === 0) {
+      return res.status(404).json({ error: "No course objects found" });
+    }
+
+    res.status(200).json({
+      message: "Course object details retrieved successfully",
+      courseObjectDetails,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve course object details: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve course object details" });
+  }
+};
+
+//* CRUD functions for course_requirements
+exports.addCourseRequirement = async (req, res) => {
+  try {
+    const { requirement } = req.body;
+    const course_id = req.params.course_id;
+
+    // Add new course requirement
+    const newCourseRequirement = await addCourseRequirement({
+      requirement,
+      course_id,
+      is_deleted: false,
+    });
+
+    res.status(201).json({
+      message: "Course requirement added successfully",
+      requirement_id: newCourseRequirement.requirement_id,
+    });
+  } catch (error) {
+    console.error("Failed to add the course requirement: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to add the course requirement" });
+  }
+};
+
+exports.updateCourseRequirement = async (req, res) => {
+  try {
+    const { requirement } = req.body;
+    const requirement_id = req.params.requirement_id;
+
+    await updateCourseRequirement({ requirement_id, requirement });
+
+    res.status(200).json({
+      message: "Course requirement updated successfully",
+    });
+  } catch (error) {
+    console.error("Failed to update the course requirement: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to update the course requirement" });
+  }
+};
+
+exports.deleteCourseRequirement = async (req, res) => {
+  try {
+    const requirement_id = req.params.requirement_id;
+
+    await deleteCourseRequirement(requirement_id);
+
+    res.status(200).json({
+      message: "Course requirement soft-deleted successfully",
+    });
+  } catch (error) {
+    console.error("Failed to delete the course requirement: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to delete the course requirement" });
+  }
+};
+
+exports.getCourseRequirementDetails = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+
+    // Get course requirement details
+    const courseRequirementDetails = await getCourseRequirementDetails(
+      course_id
+    );
+
+    if (!courseRequirementDetails || courseRequirementDetails.length === 0) {
+      return res.status(404).json({ error: "No course requirements found" });
+    }
+
+    res.status(200).json({
+      message: "Course requirement details retrieved successfully",
+      courseRequirementDetails,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve course requirement details: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve course requirement details" });
+  }
+};
+
+//* CRUD functions for course_sections
 exports.addCourseSection = async (req, res) => {
   try {
     const { section_name } = req.body;
     const course_id = req.params.course_id;
 
-    const course = await db.courses.findByPk(course_id);
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-
-    const newCourseSection = await db.course_sections.create({
+    // Add new course section
+    const newCourseSection = await addCourseSection({
       section_name,
-      course_id: course.course_id,
+      course_id,
       is_deleted: false,
     });
 
@@ -122,7 +455,68 @@ exports.addCourseSection = async (req, res) => {
   }
 };
 
-exports.addCourseVideos = async (req, res) => {
+exports.updateCourseSection = async (req, res) => {
+  try {
+    const { section_name } = req.body;
+    const course_section_id = req.params.course_section_id;
+
+    // Update course section details
+    await updateCourseSection({ course_section_id, section_name });
+
+    res.status(200).json({
+      message: "Course section updated successfully",
+    });
+  } catch (error) {
+    console.error("Failed to update the course section: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to update the course section" });
+  }
+};
+
+exports.deleteCourseSection = async (req, res) => {
+  try {
+    const course_section_id = req.params.course_section_id;
+
+    // Soft delete course section and associated videos
+    await deleteCourseSection(course_section_id); // Updated function name
+
+    res.status(200).json({
+      message: "Course section and associated videos soft-deleted successfully",
+    });
+  } catch (error) {
+    console.error("Failed to delete the course section: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to delete the course section" });
+  }
+};
+
+exports.getCourseSections = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+
+    // Get course section details
+    const courseSection = await getCourseSections(course_id);
+
+    if (!courseSection || courseSection.length === 0) {
+      return res.status(404).json({ error: "No course sections found" });
+    }
+
+    res.status(200).json({
+      message: "Course section details retrieved successfully",
+      courseSection,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve course section details: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve course section details" });
+  }
+};
+
+//* CRUD functions for section_videos
+exports.addCourseVideo = async (req, res) => {
   try {
     uploadVideo.single("video_link")(req, res, async function (err) {
       if (err) {
@@ -138,17 +532,11 @@ exports.addCourseVideos = async (req, res) => {
       const video_link = req.file.path;
       const course_section_id = req.params.course_section_id;
 
-      const courseSection = await db.course_sections.findByPk(
-        course_section_id
-      );
-      if (!courseSection || courseSection.is_deleted) {
-        return res.status(404).json({ error: "Course section not found" });
-      }
-
-      const newSectionVideo = await db.section_videos.create({
+      // Add new section video
+      const newSectionVideo = await addSectionVideo({
         video_title,
         video_link,
-        course_section_id: courseSection.course_section_id,
+        course_section_id,
         is_deleted: false,
       });
 
@@ -163,112 +551,7 @@ exports.addCourseVideos = async (req, res) => {
   }
 };
 
-exports.updateCourse = async (req, res) => {
-  try {
-    const course_id = req.params.course_id;
-    const {
-      course_title,
-      course_description,
-      course_price,
-      course_rate,
-      course_length,
-      object_1,
-      object_2,
-      object_3,
-      object_4,
-      object_5,
-      object_6,
-      object_7,
-      object_8,
-      requirement_1,
-      requirement_2,
-      requirement_3,
-      requirement_4,
-      requirement_5,
-      requirement_6,
-      requirement_7,
-      requirement_8,
-    } = req.body;
-
-    const course = await db.courses.findByPk(course_id);
-
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-
-    const updatedCourse = await course.update({
-      course_title,
-      course_description,
-      course_price,
-      course_rate,
-      course_length,
-    });
-
-    // Manually update associated models
-    const updatedCourseObjects = await db.course_objects.update(
-      {
-        object_1,
-        object_2,
-        object_3,
-        object_4,
-        object_5,
-        object_6,
-        object_7,
-        object_8,
-      },
-      { where: { course_id: updatedCourse.course_id } }
-    );
-
-    const updatedCourseRequirements = await db.course_requirements.update(
-      {
-        requirement_1,
-        requirement_2,
-        requirement_3,
-        requirement_4,
-        requirement_5,
-        requirement_6,
-        requirement_7,
-        requirement_8,
-      },
-      { where: { course_id: updatedCourse.course_id } }
-    );
-
-    res.status(200).json({
-      message: "Course updated successfully",
-      course_id: updatedCourse.course_id,
-    });
-  } catch (error) {
-    console.error("Failed to update the course: ", error);
-    return res.status(500).json({ error: "Failed to update the course" });
-  }
-};
-
-exports.updateCourseSection = async (req, res) => {
-  try {
-    const { section_name } = req.body;
-    const course_section_id = req.params.course_section_id;
-
-    const courseSection = await db.course_sections.findByPk(course_section_id);
-    if (!courseSection) {
-      return res.status(404).json({ error: "Course section not found" });
-    }
-
-    await courseSection.update({
-      section_name,
-    });
-
-    res.status(200).json({
-      message: "Course section updated successfully",
-    });
-  } catch (error) {
-    console.error("Failed to update the course section: ", error);
-    return res
-      .status(500)
-      .json({ error: "Failed to update the course section" });
-  }
-};
-
-exports.updateCourseVideos = async (req, res) => {
+exports.updateCourseVideo = async (req, res) => {
   try {
     uploadVideo.single("video_link")(req, res, async function (err) {
       if (err) {
@@ -284,15 +567,8 @@ exports.updateCourseVideos = async (req, res) => {
       const video_link = req.file.path;
       const video_id = req.params.video_id;
 
-      const sectionVideo = await db.section_videos.findByPk(video_id);
-      if (!sectionVideo || sectionVideo.is_deleted) {
-        return res.status(404).json({ error: "Section video not found" });
-      }
-
-      await sectionVideo.update({
-        video_title,
-        video_link,
-      });
+      // Update section video details
+      await updateSectionVideo({ video_id, video_title, video_link });
 
       res.status(200).json({
         message: "Section video updated successfully",
@@ -306,115 +582,15 @@ exports.updateCourseVideos = async (req, res) => {
   }
 };
 
-// controllers/coursesController.js
-
-exports.deleteCourse = async (req, res) => {
-  try {
-    const course_id = req.params.course_id;
-
-    const course = await db.courses.findByPk(course_id, {
-      include: [
-        {
-          model: db.course_objects,
-          where: { is_deleted: false },
-        },
-        {
-          model: db.course_requirements,
-          where: { is_deleted: false },
-        },
-        {
-          model: db.course_sections,
-          where: { is_deleted: false },
-          include: [
-            {
-              model: db.section_videos,
-              where: { is_deleted: false },
-            },
-          ],
-        },
-      ],
-    });
-
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-
-    await Promise.all([
-      course.update({ is_deleted: true }),
-      db.course_objects.update(
-        { is_deleted: true },
-        { where: { course_id: course.course_id } }
-      ),
-      db.course_requirements.update(
-        { is_deleted: true },
-        { where: { course_id: course.course_id } }
-      ),
-      db.course_sections.update(
-        { is_deleted: true },
-        { where: { course_id: course.course_id } }
-      ),
-      db.section_videos.update(
-        { is_deleted: true },
-        { where: { course_section_id: course.course_id } }
-      ),
-    ]);
-
-    res.status(200).json({
-      message:
-        "Course and associated objects, requirements, sections, and videos soft-deleted successfully",
-      course_id: course.course_id,
-    });
-  } catch (error) {
-    console.error("Failed to delete the course: ", error);
-    return res.status(500).json({ error: "Failed to delete the course" });
-  }
-};
-
-exports.deleteCourseSection = async (req, res) => {
-  try {
-    const course_section_id = req.params.course_section_id;
-
-    const courseSection = await db.course_sections.findByPk(course_section_id);
-    if (!courseSection) {
-      return res.status(404).json({ error: "Course section not found" });
-    }
-
-    await courseSection.update({
-      is_deleted: true,
-    });
-
-    // Soft delete associated videos
-    await db.section_videos.update(
-      { is_deleted: true },
-      { where: { course_section_id } }
-    );
-
-    res.status(200).json({
-      message: "Course section deleted successfully",
-    });
-  } catch (error) {
-    console.error("Failed to delete the course section: ", error);
-    return res
-      .status(500)
-      .json({ error: "Failed to delete the course section" });
-  }
-};
-
-exports.deleteCourseVideos = async (req, res) => {
+exports.deleteCourseVideo = async (req, res) => {
   try {
     const video_id = req.params.video_id;
 
-    const sectionVideo = await db.section_videos.findByPk(video_id);
-    if (!sectionVideo) {
-      return res.status(404).json({ error: "Section video not found" });
-    }
-
-    await sectionVideo.update({
-      is_deleted: true,
-    });
+    // Soft delete section video
+    await deleteSectionVideo(video_id);
 
     res.status(200).json({
-      message: "Section video deleted successfully",
+      message: "Section video soft-deleted successfully",
     });
   } catch (error) {
     console.error("Failed to delete the section video: ", error);
@@ -424,46 +600,48 @@ exports.deleteCourseVideos = async (req, res) => {
   }
 };
 
-exports.getCourse = async (req, res) => {
+exports.getSectionVideoDetails = async (req, res) => {
   try {
-    const course_id = req.params.course_id;
+    const video_id = req.params.video_id;
 
-    const course = await db.courses.findByPk(course_id, {
-      include: [
-        {
-          model: db.courses, 
-        },
-        {
-          model: db.course_requirements,
-          where: { is_deleted: false }, 
-        },
-        {
-          model: db.course_objects,
-          where: { is_deleted: false }, 
-        },
-        {
-          model: db.course_sections,
-          where: { is_deleted: false }, 
-          include: [
-            {
-              model: db.section_videos,
-              where: { is_deleted: false },
-            },
-          ],
-        },
-      ],
-    });
+    // Get section video details
+    const sectionVideoDetails = await getSectionVideoDetails(video_id);
 
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
+    if (!sectionVideoDetails) {
+      return res.status(404).json({ error: "Section video not found" });
     }
 
     res.status(200).json({
-      message: "Course details retrieved successfully",
-      course,
+      message: "Section video details retrieved successfully",
+      sectionVideoDetails,
     });
   } catch (error) {
-    console.error("Failed to retrieve course details: ", error);
-    return res.status(500).json({ error: "Failed to retrieve course details" });
+    console.error("Failed to retrieve section video details: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve section video details" });
+  }
+};
+
+exports.getSectionVideos = async (req, res) => {
+  try {
+    const course_section_id = req.params.course_section_id;
+
+    // Get section video details
+    const sectionVideos = await getSectionVideos(course_section_id);
+
+    if (!sectionVideos) {
+      return res.status(404).json({ error: "Section video not found" });
+    }
+
+    res.status(200).json({
+      message: "Section video details retrieved successfully",
+      sectionVideos,
+    });
+  } catch (error) {
+    console.error("Failed to retrieve section video details: ", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve section video details" });
   }
 };
