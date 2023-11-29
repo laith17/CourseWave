@@ -3,8 +3,7 @@ const usersModel = require("./users");
 const rolesModel = require("./roles");
 const trainersModel = require("./trainers");
 const coursesModel = require("./courses");
-const course_requirementsModel = require("./course_requirements");
-const course_objectsModel = require("./course_objects");
+const course_catagoriesModel = require("./course_categories");
 const course_sectionsModel = require("./course_sections");
 const section_videosModel = require("./section_videos");
 const commentsModel = require("./comments");
@@ -17,8 +16,7 @@ const initializationFunctions = [
   usersModel.createUsersTable,
   trainersModel.createTrainersTable,
   coursesModel.createCoursesTable,
-  course_requirementsModel.createCourseRequirementsTable,
-  course_objectsModel.createCourseObjectsTable,
+  course_catagoriesModel.createCatagoryTable,
   course_sectionsModel.createCourseSectionsTable,
   section_videosModel.createSectionVideosTable,
   commentsModel.createCommentsTable,
@@ -42,8 +40,7 @@ module.exports = {
   roles: rolesModel,
   trainers: trainersModel,
   courses: coursesModel,
-  course_requirements: course_requirementsModel,
-  course_objects: course_objectsModel,
+  course_catagories: course_catagoriesModel,
   course_sections: course_sectionsModel,
   section_videos: section_videosModel,
   comments: commentsModel,

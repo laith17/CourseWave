@@ -1,88 +1,88 @@
-const db = require("../db/db");
+// const db = require("../db/db");
 
-const createCourseObjectsTable = async () => {
-  const query = `
-    CREATE TABLE IF NOT EXISTS course_objects (
-      object_id SERIAL PRIMARY KEY,
-      course_id INTEGER NOT NULL REFERENCES courses(course_id),
-      object TEXT NOT NULL,
-      is_deleted BOOLEAN NOT NULL DEFAULT false
-    );
-  `;
+// const createCourseObjectsTable = async () => {
+//   const query = `
+//     CREATE TABLE IF NOT EXISTS course_objects (
+//       object_id SERIAL PRIMARY KEY,
+//       course_id INTEGER NOT NULL REFERENCES courses(course_id),
+//       object TEXT NOT NULL,
+//       is_deleted BOOLEAN NOT NULL DEFAULT false
+//     );
+//   `;
 
-  try {
-    await db.query(query);
-    console.log("Course objects table created successfully");
-  } catch (error) {
-    console.error("Error creating course objects table:", error);
-    throw error;
-  }
-};
+//   try {
+//     await db.query(query);
+//     console.log("Course objects table created successfully");
+//   } catch (error) {
+//     console.error("Error creating course objects table:", error);
+//     throw error;
+//   }
+// };
 
-async function addCourseObject({ course_id, object }) {
-  const query = {
-    text: `
-      INSERT INTO course_objects (course_id, object)
-      VALUES ($1, $2)
-      RETURNING object_id;
-    `,
-    values: [course_id, object],
-  };
+// async function addCourseObject({ course_id, object }) {
+//   const query = {
+//     text: `
+//       INSERT INTO course_objects (course_id, object)
+//       VALUES ($1, $2)
+//       RETURNING object_id;
+//     `,
+//     values: [course_id, object],
+//   };
 
-  const result = await db.query(query);
-  return result.rows[0].object_id;
-}
+//   const result = await db.query(query);
+//   return result.rows[0].object_id;
+// }
 
-async function updateCourseObject({ object_id, object }) {
-  const query = {
-    text: `
-      UPDATE course_objects
-      SET object = $2
-      WHERE object_id = $1
-      RETURNING object_id;
-    `,
-    values: [object_id, object],
-  };
+// async function updateCourseObject({ object_id, object }) {
+//   const query = {
+//     text: `
+//       UPDATE course_objects
+//       SET object = $2
+//       WHERE object_id = $1
+//       RETURNING object_id;
+//     `,
+//     values: [object_id, object],
+//   };
 
-  const result = await db.query(query);
-  return result.rows[0].object_id;
-}
+//   const result = await db.query(query);
+//   return result.rows[0].object_id;
+// }
 
-async function deleteCourseObject(object_id) {
-  const query = {
-    text: `
-      UPDATE course_objects
-      SET is_deleted = true
-      WHERE object_id = $1
-      RETURNING object_id;
-    `,
-    values: [object_id],
-  };
+// async function deleteCourseObject(object_id) {
+//   const query = {
+//     text: `
+//       UPDATE course_objects
+//       SET is_deleted = true
+//       WHERE object_id = $1
+//       RETURNING object_id;
+//     `,
+//     values: [object_id],
+//   };
 
-  const result = await db.query(query);
-  return result.rows[0].object_id;
-}
+//   const result = await db.query(query);
+//   return result.rows[0].object_id;
+// }
 
-async function getCourseObjectDetails(course_id) {
-  const query = {
-    text: `
-      SELECT * FROM course_objects
-      WHERE course_id = $1 AND is_deleted = false;
-    `,
-    values: [course_id],
-  };
+// async function getCourseObjectDetails(course_id) {
+//   const query = {
+//     text: `
+//       SELECT * FROM course_objects
+//       WHERE course_id = $1 AND is_deleted = false;
+//     `,
+//     values: [course_id],
+//   };
 
-  const result = await db.query(query);
-  return result.rows;
-}
+//   const result = await db.query(query);
+//   return result.rows;
+// }
 
-module.exports = {
-  createCourseObjectsTable,
-  addCourseObject,
-  updateCourseObject,
-  deleteCourseObject,
-  getCourseObjectDetails,
-};
+// module.exports = {
+//   createCourseObjectsTable,
+//   addCourseObject,
+//   updateCourseObject,
+//   deleteCourseObject,
+//   getCourseObjectDetails,
+// };
 
 // const { DataTypes } = require("sequelize");
 // const sequelize = require("../db/db");

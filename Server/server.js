@@ -10,6 +10,9 @@ const usersRoute = require("./routes/usersRouter");
 //* Courses Router
 const coursesRoute = require("./routes/coursesRouter");
 
+//* Catagories Router
+const courseCatagoriesRoute = require("./routes/courseCatagoriesRouter");
+
 //* Comments Router
 const commentsRoute = require("./routes/commentsRouter");
 
@@ -27,6 +30,7 @@ app.use(express.json());
 
 app.use(usersRoute);
 app.use(coursesRoute);
+app.use(courseCatagoriesRoute);
 app.use(commentsRoute);
 app.use(cartRoute);
 app.use(purchasesRoute);

@@ -1,0 +1,68 @@
+Deliverables:
+
+-Project Brief:
+
+1.Brief in English.
+2.limited to one page around 20 lines or 200 to 250 words, or around 1.200 characters without spaces.
+
+-Technical Documentations must follow this typical plan:
+
+2.Specifications, expression of need, or project functional specifications.
+3.Project technical specifications, drafted by the candidate, including for security and the mobile web. 2. Candidate's work including the most significant code excerpts and their justification, including for security and the
+mobile web.
+5.Presentation of the test case developed by the candidate of the most representative feature (input data, expected
+data and data obtained).
+6.Description of a work situation that required research to be carried out by the candidate during the project, on
+English language websites.
+7.Excerpt from the English language website, used as part of the research described above, accompanied by a
+translation into English given by the candidate without machine translation (around 750 signs).
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Information about our project:
+
+Idea: Hybrid Online Learning Platform
+Description:
+Our platform is a unique blend of Udemy and Cambly, providing a dynamic learning experience for both "teachers" and learners. "Teachers" have the opportunity to offer courses and conduct live interactive sessions, while learners can browse and enroll in a diverse range of courses.
+Target Audience:
+
+Teachers:
+Instructors, educators, and subject matter experts interested in creating and offering their courses to a global audience.
+Professionals looking to share their expertise and earn income through online teaching.
+
+Learners:
+Individuals seeking high-quality courses on a variety of topics, ranging from academic subjects to practical skills.
+Language learners looking for immersive conversational practice with native speakers.
+
+Problem Solved:
+Empowering Instructors: Provides a platform for experts to share their knowledge and skills through courses and live sessions, allowing them to reach a broader audience.
+
+Enhanced Learning for Users: Offers learners the opportunity to access a wide array of courses and engage in interactive sessions for a more enriching learning experience.
+
+Financial Return:
+
+Subscription Model for "Teachers":
+"Teachers" pay a subscription fee for the ability to create and publish courses, as well as conduct live interactive sessions.
+
+Course Sales Revenue:
+The platform earns a percentage of the course fees for each sale made by "teachers".
+
+Live Session Fees:
+"Teachers" can charge learners for participation in their live interactive sessions.
+
+Premium Features for Both User Types:
+Offer premium features to both "teachers" and learners for an additional subscription fee.
+
+What Sets Us Apart:
+
+Dual Login System: Provides a unique experience with separate logins for "teachers" and learners, catering to a wide range of educational needs.
+
+Live Interactive Sessions: Offers a platform for live sessions, allowing "teachers" to engage directly with learners for a more immersive learning experience.
+
+Global Learning Community: Connects learners with expert "teachers" from around the world, fostering cultural exchange and diverse learning experiences.
+
+Monetization Flexibility: Allows "teachers" to choose between offering courses or conducting live sessions based on their preferences, ensuring maximum flexibility in earning potential.
+
+By merging the strengths of Udemy and Cambly, our platform aims to revolutionize online learning by providing a versatile and interactive educational experience for both "teachers" and learners.
+
+i have here a documentaion requierments that we must fulfil in about 10 pages, using the project info that i just gave you, write a 10 page documentaion as per the docmentaion requiements
