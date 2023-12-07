@@ -8,7 +8,7 @@ CourseWave platform is a unique blend of Udemy and Cambly, providing a dynamic l
 
 ## [Mockup & WireFrame](https://www.figma.com/file/YObvIYB6fjsi4esjzpIh6r/CourseWave?type=design&node-id=0%3A1&mode=design&t=X7ya5VtdY4Aqel6Y-1)
 
-## [Trello Board]()
+## [Trello Board](https://trello.com/b/X2v4B24c/coursewave)
 
 ## [Our Organization](https://github.com/CourseWave/CourseWave-MasterPiece)
 
